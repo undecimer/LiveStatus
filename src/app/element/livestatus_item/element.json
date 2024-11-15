@@ -1,0 +1,98 @@
+{
+    "@import": "./element.php",
+    "name": "livestatus_item",
+    "title": "Item",
+    "width": 500,
+    "placeholder": {
+        "props": {
+            "platform": "tiktok",
+            "username": "example",
+            "show_offline": true,
+            "offline_text": "Offline",
+            "live_text": "Live",
+            "animated_bg": false,
+            "show_icon": true
+        }
+    },
+    "templates": {
+        "render": "./templates/template.php",
+        "content": "./templates/content.php"
+    },
+    "fields": {
+        "platform": {
+            "type": "select",
+            "label": "Platform",
+            "description": "Select the streaming platform",
+            "default": "tiktok",
+            "options": {
+                "TikTok": "tiktok",
+                "YouTube": "youtube",
+                "Twitch": "twitch",
+                "Facebook Live": "facebook",
+                "Instagram Live": "instagram",
+                "Kick": "kick"
+            },
+            "source": true
+        },
+        "username": {
+            "label": "Username",
+            "description": "Enter the channel username",
+            "source": true
+        },
+        "show_offline": {
+            "type": "checkbox",
+            "text": "Show offline status",
+            "default": true,
+            "source": true
+        },
+        "offline_text": {
+            "label": "Offline Text",
+            "description": "Text to show when stream is offline",
+            "enable": "show_offline",
+            "default": "Offline",
+            "source": true
+        },
+        "live_text": {
+            "label": "Live Text",
+            "description": "Text to show when stream is live",
+            "default": "Live",
+            "source": true
+        },
+        "animated_bg": {
+            "type": "checkbox",
+            "text": "Use animated background",
+            "description": "Enable platform-colored animated background effect when live",
+            "default": false,
+            "source": true
+        },
+        "show_icon": {
+            "type": "checkbox",
+            "text": "Show platform icon",
+            "description": "Display the platform icon next to the status text",
+            "default": true,
+            "source": true
+        },
+        "status": "${builder.statusItem}",
+        "source": "${builder.source}"
+    },
+    "fieldset": {
+        "default": {
+            "type": "tabs",
+            "fields": [
+                {
+                    "title": "Content",
+                    "fields": [
+                        "platform",
+                        "username",
+                        "show_offline",
+                        "offline_text",
+                        "live_text",
+                        "animated_bg",
+                        "show_icon"
+                    ]
+                },
+                "${builder.advancedItem}"
+            ]
+        }
+    }
+}

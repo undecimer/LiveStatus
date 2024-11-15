@@ -6,81 +6,122 @@
     "icon": "${url:images/icon.svg}",
     "iconSmall": "${url:images/iconSmall.svg}",
     "element": true,
+    "container": true,
     "width": 500,
     "defaults": {
-        "platform": "tiktok",
-        "username": "",
-        "show_offline": true,
-        "offline_text": "Offline",
-        "live_text": "Live",
+        "layout": "grid",
+        "grid_gap": "small",
+        "grid_divider": false,
+        "grid_column_gap": "",
+        "grid_row_gap": "",
+        "grid_columns": "auto",
         "alignment": "left",
-        "animated_bg": false,
-        "show_icon": true,
         "size": ""
     },
+    "placeholder": {
+        "children": [
+            {
+                "type": "livestatus_item",
+                "props": {}
+            }
+        ]
+    },
     "templates": {
-        "render": "./templates/template.php"
+        "render": "./templates/template.php",
+        "content": "./templates/content.php"
     },
     "fields": {
-        "platform": {
-            "type": "select",
-            "label": "Platform",
-            "description": "Select the streaming platform",
-            "default": "tiktok",
-            "options": {
-                "TikTok": "tiktok",
-                "YouTube": "youtube",
-                "Twitch": "twitch",
-                "Facebook Live": "facebook",
-                "Instagram Live": "instagram",
-                "Kick": "kick"
-            }
-        },
-        "username": {
-            "label": "Username",
-            "description": "Enter the channel username"
-        },
-        "show_offline": {
-            "type": "checkbox",
-            "text": "Show offline status",
-            "default": true
-        },
-        "offline_text": {
-            "label": "Offline Text",
-            "description": "Text to show when stream is offline",
-            "enable": "show_offline",
-            "default": "Offline"
-        },
-        "live_text": {
-            "label": "Live Text",
-            "description": "Text to show when stream is live",
-            "default": "Live"
-        },
-        "animated_bg": {
-            "type": "checkbox",
-            "text": "Use animated background",
-            "description": "Enable platform-colored animated background effect when live",
-            "default": false
-        },
-        "show_icon": {
-            "type": "checkbox",
-            "text": "Show platform icon",
-            "description": "Display the platform icon next to the status text",
-            "default": true
+        "content": {
+            "label": "Items",
+            "type": "content-items",
+            "item": "livestatus_item"
         },
         "size": {
             "label": "Size",
-            "description": "Select the label size",
+            "description": "Select the size for all status items.",
             "type": "select",
             "default": "",
             "options": {
                 "Default": "",
+                "Small": "small",
                 "Large": "large"
+            }
+        },
+        "layout": {
+            "label": "Layout",
+            "description": "Define the layout of status items.",
+            "type": "select",
+            "default": "grid",
+            "options": {
+                "Grid": "grid",
+                "Flow": "flow"
+            }
+        },
+        "grid_columns": {
+            "label": "Grid Columns",
+            "description": "Set the number of columns for the grid layout. Auto will adjust based on available space.",
+            "type": "select",
+            "default": "auto",
+            "show": "layout == 'grid'",
+            "options": {
+                "Auto": "auto",
+                "1 Column": "1",
+                "2 Columns": "2",
+                "3 Columns": "3",
+                "4 Columns": "4",
+                "5 Columns": "5",
+                "6 Columns": "6"
+            }
+        },
+        "grid_gap": {
+            "label": "Grid Gap",
+            "description": "Set the size of the gap between the grid items.",
+            "type": "select",
+            "default": "small",
+            "show": "layout == 'grid'",
+            "options": {
+                "Small": "small",
+                "Medium": "medium",
+                "Large": "large",
+                "None": ""
+            }
+        },
+        "grid_divider": {
+            "type": "checkbox",
+            "text": "Show dividers between grid items",
+            "show": "layout == 'grid'"
+        },
+        "grid_column_gap": {
+            "label": "Column Gap",
+            "description": "Set a different column gap size when the default grid gap is not used.",
+            "type": "select",
+            "default": "",
+            "show": "layout == 'grid'",
+            "options": {
+                "Small": "small",
+                "Medium": "medium",
+                "Default": "",
+                "Large": "large",
+                "None": "collapse"
+            }
+        },
+        "grid_row_gap": {
+            "label": "Row Gap",
+            "description": "Set a different row gap size when the default grid gap is not used.",
+            "type": "select",
+            "default": "",
+            "show": "layout == 'grid'",
+            "options": {
+                "Small": "small",
+                "Medium": "medium",
+                "Default": "",
+                "Large": "large",
+                "None": "collapse"
             }
         },
         "alignment": {
             "label": "Alignment",
-            "description": "Select the label alignment",
+            "description": "Align the status items.",
             "type": "select",
             "options": {
                 "Left": "left",
@@ -114,13 +155,13 @@
         "attributes": "${builder.attrs}",
         "css": {
             "label": "CSS",
-            "description": "Enter your own custom CSS. The following selectors will be prefixed automatically for this element: <code>.el-element</code>",
+            "description": "Enter your own custom CSS. The following selectors will be prefixed automatically for this element: <code>.el-element</code>, <code>.el-item</code>",
             "type": "editor",
             "editor": "code",
             "mode": "css",
             "attrs": {
                 "debounce": 500,
-                "hints": [".el-element"]
+                "hints": [".el-element", ".el-item"]
             }
         }
     },
@@ -131,45 +172,20 @@
                 {
                     "title": "Content",
                     "fields": [
-                        "platform",
-                        "username",
-                        "show_offline",
-                        "offline_text",
-                        "live_text",
-                        "animated_bg",
-                        "show_icon",
-                        "size",
-                        "alignment"
+                        "content",
+                        "size"
                     ]
                 },
                 {
                     "title": "Settings",
                     "fields": [
-                        {
-                            "label": "General",
-                            "type": "group",
-                            "fields": [
-                                "position",
-                                "position_left",
-                                "position_right",
-                                "position_top",
-                                "position_bottom",
-                                "position_z_index",
-                                "margin",
-                                "margin_remove_top",
-                                "margin_remove_bottom",
-                                "maxwidth",
-                                "maxwidth_breakpoint",
-                                "block_align",
-                                "block_align_breakpoint",
-                                "block_align_fallback",
-                                "text_align",
-                                "text_align_breakpoint",
-                                "text_align_fallback",
-                                "animation",
-                                "visibility"
-                            ]
-                        }
+                        "layout",
+                        "grid_columns",
+                        "grid_gap",
+                        "grid_divider",
+                        "grid_column_gap",
+                        "grid_row_gap",
+                        "alignment"
                     ]
                 },
                 "${builder.advanced}"

@@ -1,87 +1,99 @@
-# Live Status Plugin for YOOtheme Pro
+# LiveStatus Plugin for YOOtheme Pro
 
-A Joomla plugin that adds a YOOtheme Pro element to display live streaming status for various platforms.
+A powerful multi-platform livestreaming status detection plugin for YOOtheme Pro. Monitor and display live status from multiple streaming platforms in a beautiful, customizable interface.
 
-## Supported Platforms
+In its current state, the plugin is a work in progress and is still under development, expect bugs and incomplete features. We welcome contributions and suggestions to improve the functionality and user experience. At the moment, is only available for Joomla, WordPress support will be added if requested.
 
-- TikTok
-- YouTube
-- Twitch
-- Facebook Live
-- Instagram Live
-- Kick
+## 🌟 Features
 
-## Features
+### Platform Support
+- **Multiple Platforms**: Support for major streaming platforms:
+  - TikTok
+  - YouTube
+  - Twitch
+  - Facebook Live
+  - Instagram Live
+  - Kick
 
-- Real-time live status detection
-- Platform-specific icons and color schemes
-- Customizable live/offline text
-- Text alignment options
-- Optional icon display
-- Hide when offline option
-- Animated background effects
-- Size variations (Default/Large)
-- Caching for performance
-- Error handling and user feedback
+### Display Options
+- **Flexible Layouts**:
+  - Grid layout with customizable columns (Auto, 1-6 columns)
+  - Flow layout for natural content flow
+  - Responsive design with mobile optimization
+  - Customizable gap spacing between items
 
-## Installation
+- **Size Options**:
+  - Small: Compact display for tight spaces
+  - Default: Standard size for most use cases respecting uikit styling
+  - Large: Enhanced visibility for featured items
+
+- **Visual Customization**:
+  - Platform-specific color schemes
+  - Animated background effects (optional per item)
+  - Platform icons with consistent styling
+  - Live/Offline state indicators
+
+### Status Features
+- Real-time status detection
+- Platform-specific error handling
+- Customizable online/offline messages
+- Clickable links to streams
+
+## 🔧 Installation
 
 1. Download the plugin package
-2. Install via Joomla Extension Manager
-3. Enable the plugin in Joomla Plugin Manager
-4. Clear YOOtheme Pro cache if needed
+2. Install via Joomla's Extension Manager
+3. Enable the plugin in Joomla's Plugin Manager
+4. The LiveStatus element will be available in YOOtheme Pro's builder
 
-## Usage
+## 📝 Usage
 
-1. Open YOOtheme Pro Page Builder
-2. Add new element
-3. Find "Live Status" under Basic Elements
-4. Configure:
+### Basic Setup
+1. Add the LiveStatus element to your page
+2. Configure the parent element settings:
+   - Choose layout type (Grid/Flow)
+   - Set size for all items
+   - Configure grid columns if using grid layout
+3. Add individual status items:
    - Select platform
-   - Enter username
-   - Customize text and appearance
-   - Set visibility options
-   - Choose size and animation preferences
+   - Enter username/channel
+   - Configure item-specific options
 
-## Configuration
+### Configuration Options
 
-### Element Settings
+#### Parent Element
+- **Layout**: Choose between Grid and Flow layouts
+- **Grid Columns**: Select number of columns (Auto, 1-6)
+- **Size**: Set global size for all items
+- **Gap**: Configure spacing between items
+- **Alignment**: Set items alignment
 
-- **Platform**: Choose streaming platform
-- **Username**: Channel/user name (without @ symbol)
-- **Live Status Text**: Text shown when live
-- **Offline Status Text**: Text shown when offline
-- **Text Alignment**: Left/Center/Right
-- **Hide When Offline**: Toggle visibility when offline
-- **Show Icon**: Toggle platform icon
-- **Size**: Choose label size (Default/Large)
-- **Animated Background**: Toggle animated gradient effect
-- **Platform Colors**: Automatic platform-specific color schemes
+#### Individual Items
+- **Platform**: Select streaming platform
+- **Username**: Enter channel/username
+- **Animated Background**: Toggle animation effect
+- **Show Icon**: Toggle platform icon visibility
+- **Custom Messages**: Set custom online/offline text
 
-### Plugin Settings
+## 🎨 Styling
 
-- **Cache Time**: Duration to cache status (5-3600 seconds)
+The plugin uses UIkit's CSS framework and includes:
+- Platform-specific color schemes
+- Responsive design
+- Flexible grid system
+- Animated backgrounds
+- Size variations
 
-## Visual Features
+## 📋 Requirements
 
-- Platform-specific color gradients
-- Animated background effects
-- Responsive sizing options
-- Dynamic icon integration
-- UIkit-consistent styling
+- Joomla 4.x or higher
+- YOOtheme Pro 4.x or higher
+- PHP 7.4 or higher
 
-## Notes
+## 🤝 Support
 
-- Uses web scraping for status detection
-- Cache recommended to prevent rate limiting
-- Some platforms may have delays in status updates
-- Requires active internet connection
-- Animations optimized for performance
+For support, feature requests, or bug reports, please use the GitHub issues section.
 
-## Support
+## 📜 License
 
-For issues and feature requests, please use the GitHub repository.
-
-## License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the LICENSE file for details.
