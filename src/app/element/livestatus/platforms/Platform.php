@@ -2,17 +2,40 @@
 
 namespace YOOtheme\LiveStatus\Element\LiveStatus\Platforms;
 
-abstract class Platform
+abstract class Platform implements PlatformInterface
 {
-    protected $username;
-
-    public function __construct(string $username)
+    /**
+     * Check if a channel is currently live
+     *
+     * @param string $username The channel username
+     * @return bool True if live, false otherwise
+     */
+    public function isLive(string $username): bool
     {
-        $this->username = $username;
+        try {
+            $data = $this->fetchData($username);
+            return $data['live'] ?? false;
+        } catch (\Exception $e) {
+            return false;
+        }
     }
 
-    abstract public function fetchData(): array;
+    /**
+     * Fetch data from the platform
+     *
+     * @param string $username The channel username
+     * @return array The platform data
+     * @throws \Exception If the request fails
+     */
+    abstract protected function fetchData(string $username): array;
 
+    /**
+     * Make an HTTP GET request
+     *
+     * @param string $url The URL to request
+     * @return string The response body
+     * @throws \Exception If the request fails
+     */
     protected function httpGet(string $url): string
     {
         $ch = curl_init();

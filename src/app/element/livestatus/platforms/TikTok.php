@@ -4,9 +4,9 @@ namespace YOOtheme\LiveStatus\Element\LiveStatus\Platforms;
 
 class TikTok extends Platform
 {
-    public function fetchData(): array
+    protected function fetchData(string $username): array
     {
-        $url = "https://www.tiktok.com/@{$this->username}";
+        $url = "https://www.tiktok.com/@{$username}";
         $response = $this->httpGet($url);
 
         // Check if user exists
@@ -34,7 +34,7 @@ class TikTok extends Platform
 
         return [
             'live' => $isLive,
-            'username' => $this->username,
+            'username' => $username,
             'platform' => 'tiktok'
         ];
     }

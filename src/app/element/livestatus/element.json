@@ -10,62 +10,47 @@
     "defaults": {
         "platform": "tiktok",
         "username": "",
-        "status_text_live": "Live Now!",
-        "status_text_offline": "Offline",
-        "text_alignment": "left",
-        "hide_when_offline": false,
-        "show_icon": true
+        "show_offline": true,
+        "offline_text": "Offline",
+        "live_text": "Live"
     },
     "templates": {
-        "render": "./templates/template.php",
-        "content": "./templates/content.php"
+        "render": "./templates/template.php"
     },
     "fields": {
         "platform": {
-            "label": "Platform",
             "type": "select",
+            "label": "Platform",
+            "description": "Select the streaming platform",
+            "default": "tiktok",
             "options": {
-                "tiktok": "TikTok",
-                "youtube": "YouTube",
-                "twitch": "Twitch"
+                "TikTok": "tiktok",
+                "YouTube": "youtube",
+                "Twitch": "twitch",
+                "Facebook Live": "facebook",
+                "Instagram Live": "instagram",
+                "Kick": "kick"
             }
         },
         "username": {
             "label": "Username",
-            "description": "Enter the username without the @ symbol",
-            "type": "text"
+            "description": "Enter the channel username"
         },
-        "status_text_live": {
-            "label": "Live Status Text",
-            "type": "text",
-            "description": "Text to show when user is live"
-        },
-        "status_text_offline": {
-            "label": "Offline Status Text",
-            "type": "text",
-            "description": "Text to show when user is offline"
-        },
-        "text_alignment": {
-            "label": "Alignment",
-            "type": "select",
-            "default": "left",
-            "options": {
-                "left": "Left",
-                "center": "Center",
-                "right": "Right"
-            }
-        },
-        "hide_when_offline": {
-            "label": "Visibility",
+        "show_offline": {
             "type": "checkbox",
-            "text": "Hide when offline",
-            "description": "If checked, the label will not be displayed when the user is offline"
+            "text": "Show offline status",
+            "default": true
         },
-        "show_icon": {
-            "label": "Icon",
-            "type": "checkbox",
-            "text": "Show platform icon",
-            "description": "Show platform icon before the status text"
+        "offline_text": {
+            "label": "Offline Text",
+            "description": "Text to show when stream is offline",
+            "enable": "show_offline",
+            "default": "Offline"
+        },
+        "live_text": {
+            "label": "Live Text",
+            "description": "Text to show when stream is live",
+            "default": "Live"
         },
         "position": "${builder.position}",
         "position_left": "${builder.position_left}",
@@ -76,8 +61,15 @@
         "margin": "${builder.margin}",
         "margin_remove_top": "${builder.margin_remove_top}",
         "margin_remove_bottom": "${builder.margin_remove_bottom}",
+        "maxwidth": "${builder.maxwidth}",
+        "maxwidth_breakpoint": "${builder.maxwidth_breakpoint}",
+        "block_align": "${builder.block_align}",
+        "block_align_breakpoint": "${builder.block_align_breakpoint}",
+        "block_align_fallback": "${builder.block_align_fallback}",
+        "text_align": "${builder.text_align}",
+        "text_align_breakpoint": "${builder.text_align_breakpoint}",
+        "text_align_fallback": "${builder.text_align_fallback}",
         "animation": "${builder.animation}",
-        "_parallax_button": "${builder._parallax_button}",
         "visibility": "${builder.visibility}",
         "name": "${builder.name}",
         "status": "${builder.status}",
@@ -86,7 +78,7 @@
         "attributes": "${builder.attrs}",
         "css": {
             "label": "CSS",
-            "description": "Enter your custom CSS. The following selectors will be prefixed automatically: .el-element",
+            "description": "Enter your own custom CSS. The following selectors will be prefixed automatically for this element: <code>.el-element</code>",
             "type": "editor",
             "editor": "code",
             "mode": "css",
@@ -102,11 +94,43 @@
             "fields": [
                 {
                     "title": "Content",
-                    "fields": ["platform", "username", "status_text_live", "status_text_offline"]
+                    "fields": [
+                        "platform",
+                        "username",
+                        "show_offline",
+                        "offline_text",
+                        "live_text"
+                    ]
                 },
                 {
                     "title": "Settings",
-                    "fields": ["text_alignment", "hide_when_offline", "show_icon"]
+                    "fields": [
+                        {
+                            "label": "General",
+                            "type": "group",
+                            "fields": [
+                                "position",
+                                "position_left",
+                                "position_right",
+                                "position_top",
+                                "position_bottom",
+                                "position_z_index",
+                                "margin",
+                                "margin_remove_top",
+                                "margin_remove_bottom",
+                                "maxwidth",
+                                "maxwidth_breakpoint",
+                                "block_align",
+                                "block_align_breakpoint",
+                                "block_align_fallback",
+                                "text_align",
+                                "text_align_breakpoint",
+                                "text_align_fallback",
+                                "animation",
+                                "visibility"
+                            ]
+                        }
+                    ]
                 },
                 "${builder.advanced}"
             ]

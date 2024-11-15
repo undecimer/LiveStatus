@@ -72,6 +72,33 @@
                     min="10"
                     max="100"
                 />
+                <field
+                    name="rate_limit_facebook"
+                    type="number"
+                    default="60"
+                    label="PLG_SYSTEM_LIVESTATUS_RATE_FACEBOOK_LABEL"
+                    description="PLG_SYSTEM_LIVESTATUS_RATE_FACEBOOK_DESC"
+                    min="10"
+                    max="100"
+                />
+                <field
+                    name="rate_limit_instagram"
+                    type="number"
+                    default="60"
+                    label="PLG_SYSTEM_LIVESTATUS_RATE_INSTAGRAM_LABEL"
+                    description="PLG_SYSTEM_LIVESTATUS_RATE_INSTAGRAM_DESC"
+                    min="10"
+                    max="100"
+                />
+                <field
+                    name="rate_limit_kick"
+                    type="number"
+                    default="60"
+                    label="PLG_SYSTEM_LIVESTATUS_RATE_KICK_LABEL"
+                    description="PLG_SYSTEM_LIVESTATUS_RATE_KICK_DESC"
+                    min="10"
+                    max="100"
+                />
             </fieldset>
         </fields>
     </config>

@@ -6,6 +6,9 @@ use YOOtheme\LiveStatus\Element\LiveStatus\Platforms\Platform;
 use YOOtheme\LiveStatus\Element\LiveStatus\Platforms\TikTok;
 use YOOtheme\LiveStatus\Element\LiveStatus\Platforms\Twitch;
 use YOOtheme\LiveStatus\Element\LiveStatus\Platforms\YouTube;
+use YOOtheme\LiveStatus\Element\LiveStatus\Platforms\FacebookLive;
+use YOOtheme\LiveStatus\Element\LiveStatus\Platforms\InstagramLive;
+use YOOtheme\LiveStatus\Element\LiveStatus\Platforms\Kick;
 use YOOtheme\LiveStatus\Cache\CacheManager;
 use YOOtheme\LiveStatus\RateLimit\RateLimitManager;
 
@@ -50,6 +53,12 @@ class LiveStatusElement {
                 return new YouTube($username);
             case 'twitch':
                 return new Twitch($username);
+            case 'facebook':
+                return new FacebookLive($username);
+            case 'instagram':
+                return new InstagramLive($username);
+            case 'kick':
+                return new Kick($username);
             default:
                 throw new \Exception("Platform not supported");
         }
@@ -59,15 +68,20 @@ class LiveStatusElement {
 function getPlatformUrl($platform, $username) {
     switch ($platform) {
         case 'tiktok':
-            return "https://www.tiktok.com/@{$username}";
+            return "https://www.tiktok.com/@{$username}/live";
         case 'youtube':
-            // Handle both channel IDs and custom URLs
-            if (preg_match('/^UC[\w-]{22}$/', $username)) {
+            if (strpos($username, 'UC') === 0 && strlen($username) === 24) {
                 return "https://www.youtube.com/channel/{$username}";
             }
             return "https://www.youtube.com/@{$username}";
         case 'twitch':
             return "https://www.twitch.tv/{$username}";
+        case 'facebook':
+            return "https://www.facebook.com/{$username}";
+        case 'instagram':
+            return "https://www.instagram.com/{$username}";
+        case 'kick':
+            return "https://kick.com/{$username}";
         default:
             return '#';
     }
@@ -94,40 +108,40 @@ $alignmentClass = 'uk-flex uk-flex-' . $alignment;
 
 <style>
 .el-livestatus {
-    width: 100%;
-}
-
-.el-livestatus .livestatus-container {
-    width: 100%;
-}
-
-.el-livestatus a {
-    text-decoration: none;
-}
-
-.el-livestatus a:hover .uk-label {
-    filter: brightness(90%);
+    display: inline-flex;
 }
 
 .el-livestatus .uk-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4em;
-    transition: filter 0.2s ease;
+    background: #666;
+    transition: background-color 0.3s ease;
 }
 
-/* Platform-specific colors when live */
+.el-livestatus .uk-label.is-live {
+    background: #32d296;
+}
+
 .el-livestatus .uk-label.is-live[data-platform="tiktok"] {
-    background: #25F4EE;
-    color: #000;
+    background: #fe2c55;
 }
 
 .el-livestatus .uk-label.is-live[data-platform="youtube"] {
-    background: #c4302b;
+    background: #ff0000;
 }
 
 .el-livestatus .uk-label.is-live[data-platform="twitch"] {
     background: #9147ff;
+}
+
+.el-livestatus .uk-label.is-live[data-platform="facebook"] {
+    background: #4267b2;
+}
+
+.el-livestatus .uk-label.is-live[data-platform="instagram"] {
+    background: #f26798;
+}
+
+.el-livestatus .uk-label.is-live[data-platform="kick"] {
+    background: #53fc18;
 }
 
 .el-livestatus .el-livestatus-error {
@@ -157,3 +171,39 @@ $alignmentClass = 'uk-flex uk-flex-' . $alignment;
         <?php endif ?>
     </div>
 <?= $el->end() ?>
+
+
+<?php
+$id = $element['id'];
+$platform = $props['platform_name'];
+$username = $props['channel_username'];
+$isLive = $props['is_live'];
+$showOffline = $props['show_offline'];
+$offlineText = $props['offline_text'];
+$liveText = $props['live_text'];
+
+// Don't show anything if offline and show_offline is false
+if (!$isLive && !$showOffline) {
+    return;
+}
+
+// Get platform URL
+$platformUrl = getPlatformUrl($platform, $username);
+
+// Build classes
+$el = $this->el('div', [
+    'class' => [
+        'el-livestatus',
+        'uk-flex uk-flex-middle',
+    ]
+]);
+
+?>
+
+<?= $el($props, $attrs) ?>
+    <a href="<?= $platformUrl ?>" target="_blank" class="uk-link-reset">
+        <span class="uk-label<?= $isLive ? ' is-live' : '' ?>" data-platform="<?= $platform ?>">
+            <?= $isLive ? $liveText : $offlineText ?>
+        </span>
+    </a>
+</div>

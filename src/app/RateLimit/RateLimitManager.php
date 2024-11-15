@@ -23,7 +23,10 @@ class RateLimitManager
         $this->limits = [
             'tiktok' => isset($params->rate_limit_tiktok) ? (int)$params->rate_limit_tiktok : 60,
             'youtube' => isset($params->rate_limit_youtube) ? (int)$params->rate_limit_youtube : 60,
-            'twitch' => isset($params->rate_limit_twitch) ? (int)$params->rate_limit_twitch : 60
+            'twitch' => isset($params->rate_limit_twitch) ? (int)$params->rate_limit_twitch : 60,
+            'facebook' => isset($params->rate_limit_facebook) ? (int)$params->rate_limit_facebook : 60,
+            'instagram' => isset($params->rate_limit_instagram) ? (int)$params->rate_limit_instagram : 60,
+            'kick' => isset($params->rate_limit_kick) ? (int)$params->rate_limit_kick : 60
         ];
 
         // Initialize cache
