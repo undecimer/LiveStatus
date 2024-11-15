@@ -16,50 +16,56 @@ return [
             $platform = strtolower($node->props['platform'] ?? 'tiktok');
             $username = $node->props['username'] ?? '';
 
+            error_log("LiveStatus render start - Platform: {$platform}, Username: {$username}");
+
             if (empty($username)) {
+                error_log("LiveStatus: Empty username");
                 return false;
             }
 
             try {
-                // Create platform instance
+                // Create platform instance based on selection
+                $instance = null;
                 switch ($platform) {
                     case 'tiktok':
-                        $instance = new TikTok();
+                        $instance = new TikTok($username);
                         break;
                     case 'youtube':
-                        $instance = new YouTube();
+                        $instance = new YouTube($username);
                         break;
                     case 'twitch':
-                        $instance = new Twitch();
+                        $instance = new Twitch($username);
                         break;
                     case 'facebook':
-                        $instance = new FacebookLive();
+                        $instance = new FacebookLive($username);
                         break;
                     case 'instagram':
-                        $instance = new InstagramLive();
+                        $instance = new InstagramLive($username);
                         break;
                     case 'kick':
-                        $instance = new Kick();
+                        $instance = new Kick($username);
                         break;
-                    default:
-                        return false;
+                }
+
+                if (!$instance) {
+                    error_log("LiveStatus: Invalid platform {$platform}");
+                    return false;
                 }
 
                 // Get live status
-                $isLive = $instance->isLive($username);
-
-                // Update node props with live status
-                $node->props['is_live'] = $isLive;
-                $node->props['platform_name'] = $platform;
-                $node->props['channel_username'] = $username;
-
+                $data = $instance->fetchData();
+                error_log("LiveStatus fetchData result: " . print_r($data, true));
+                
+                // Update node props with live status and data
+                $node->props['isLive'] = $data['live'] ?? false;
+                $node->props['platformData'] = $data;
+                
+                error_log("LiveStatus node props updated - isLive: " . ($node->props['isLive'] ? 'true' : 'false'));
                 return $node;
             } catch (\Exception $e) {
-                // Handle any errors gracefully
-                $node->props['is_live'] = false;
-                $node->props['platform_name'] = $platform;
-                $node->props['channel_username'] = $username;
-                $node->props['error'] = $e->getMessage();
+                // Log error and store it in node props
+                error_log("LiveStatus Error: " . $e->getMessage());
+                $node->props['platformData'] = ['error' => $e->getMessage()];
                 return $node;
             }
         }

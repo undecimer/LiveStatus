@@ -2,93 +2,81 @@
 
 namespace YOOtheme\LiveStatus\Element\LiveStatus\Platforms;
 
-use YOOtheme\LiveStatus\Cache\CacheManager;
-use YOOtheme\LiveStatus\RateLimit\RateLimitManager;
-
-class Kick implements PlatformInterface
+class Kick extends Platform
 {
-    private $cacheManager;
-    private $rateLimitManager;
-
-    public function __construct()
-    {
-        $this->cacheManager = CacheManager::getInstance();
-        $this->rateLimitManager = RateLimitManager::getInstance();
-    }
-
-    public function isLive(string $username): bool
-    {
-        // Check rate limit
-        if (!$this->rateLimitManager->checkLimit('kick')) {
-            return false;
-        }
-
-        // Check cache first
-        $cached = $this->cacheManager->get('kick', $username);
-        if ($cached !== false) {
-            return $cached;
-        }
-
-        // Try API first, then fallback to scraping
-        $isLive = $this->checkViaApi($username);
-        if ($isLive === null) {
-            $isLive = $this->checkViaScraping($username);
-        }
-
-        $this->cacheManager->store($isLive, 'kick', $username);
-        return $isLive;
-    }
-
-    private function checkViaApi(string $username): ?bool
+    protected function checkLiveStatus(): array
     {
         try {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, "https://kick.com/api/v1/channels/{$username}");
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'LiveStatus/1.0');
-            
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($httpCode !== 200 || $response === false) {
-                return null;
+            // Check cache first
+            if ($this->cacheManager) {
+                $cachedStatus = $this->cacheManager->get('kick', $this->username);
+                if ($cachedStatus !== null) {
+                    error_log("Kick: Using cached status for {$this->username}: " . ($cachedStatus['live'] ? 'live' : 'not live'));
+                    return $cachedStatus;
+                }
             }
 
-            $data = json_decode($response, true);
-            return isset($data['livestream']) && $data['livestream'] !== null;
-
-        } catch (\Exception $e) {
-            return null;
-        }
-    }
-
-    private function checkViaScraping(string $username): bool
-    {
-        try {
-            $ch = curl_init();
-            curl_setopt($ch, CURLOPT_URL, "https://kick.com/{$username}");
-            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-            curl_setopt($ch, CURLOPT_USERAGENT, 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36');
-            
-            $response = curl_exec($ch);
-            $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            curl_close($ch);
-
-            if ($httpCode !== 200 || $response === false) {
-                return false;
+            // Check rate limiting
+            if ($this->rateLimitManager && !$this->rateLimitManager->checkLimit('kick')) {
+                throw new \Exception('Rate limit exceeded for Kick');
             }
 
-            // Look for indicators that the stream is live
-            return (
-                stripos($response, '"isLive":true') !== false ||
-                stripos($response, 'livestream-offline-container') === false ||
-                stripos($response, 'Live on Kick') !== false
-            );
+            // Simple headers that work
+            $headers = [
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'Accept-Language' => 'en-US,en;q=0.9',
+                'Accept' => 'text/html',
+                'Accept-Encoding' => 'gzip'
+            ];
+
+            $url = "https://kick.com/{$this->username}";
+            $response = $this->httpGet($url, $headers);
+
+            error_log("Kick response length for {$this->username}: " . strlen($response));
+
+            // Simple patterns that work reliably
+            $patterns = [
+                '/livestream-offline-container hidden/',  // Hidden offline container means live
+                '/"is_live":true/',                      // JSON live status
+                '/livestream-buttons-container/',         // Live buttons container
+                '/playback-overlay-container/',           // Playback overlay indicates live
+                '/data-channel-is-live="true"/'          // Live channel attribute
+            ];
+
+            $isLive = false;
+            foreach ($patterns as $pattern) {
+                if (preg_match($pattern, $response)) {
+                    error_log("Kick live pattern match for {$this->username}: $pattern");
+                    $isLive = true;
+                    break;
+                }
+            }
+
+            // Check for profile existence
+            if (strpos($response, 'This page is not found') !== false || 
+                strpos($response, '404 - Page Not Found') !== false) {
+                error_log("Kick profile not found for {$this->username}");
+                throw new \Exception("Kick profile not found");
+            }
+
+            $result = [
+                'live' => $isLive,
+                'username' => $this->username,
+                'platform' => 'kick'
+            ];
+
+            // Cache the result
+            if ($this->cacheManager) {
+                $cacheDuration = $isLive ? 30 : 120; // 30 seconds if live, 2 minutes if not
+                $this->cacheManager->store($result, 'kick', $this->username, $cacheDuration);
+            }
+
+            error_log("Kick final status for {$this->username}: " . ($isLive ? 'live' : 'not live'));
+            return $result;
 
         } catch (\Exception $e) {
-            return false;
+            error_log("Kick error for {$this->username}: " . $e->getMessage());
+            throw $e;
         }
     }
 }

@@ -12,7 +12,8 @@
         "username": "",
         "show_offline": true,
         "offline_text": "Offline",
-        "live_text": "Live"
+        "live_text": "Live",
+        "alignment": "left"
     },
     "templates": {
         "render": "./templates/template.php"
@@ -51,6 +52,16 @@
             "label": "Live Text",
             "description": "Text to show when stream is live",
             "default": "Live"
+        },
+        "alignment": {
+            "label": "Alignment",
+            "description": "Select the label alignment",
+            "type": "select",
+            "options": {
+                "Left": "left",
+                "Center": "center",
+                "Right": "right"
+            }
         },
         "position": "${builder.position}",
         "position_left": "${builder.position_left}",
@@ -99,7 +110,8 @@
                         "username",
                         "show_offline",
                         "offline_text",
-                        "live_text"
+                        "live_text",
+                        "alignment"
                     ]
                 },
                 {
