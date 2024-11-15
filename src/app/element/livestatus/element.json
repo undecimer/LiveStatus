@@ -13,7 +13,10 @@
         "show_offline": true,
         "offline_text": "Offline",
         "live_text": "Live",
-        "alignment": "left"
+        "alignment": "left",
+        "animated_bg": false,
+        "show_icon": true,
+        "size": ""
     },
     "templates": {
         "render": "./templates/template.php"
@@ -52,6 +55,28 @@
             "label": "Live Text",
             "description": "Text to show when stream is live",
             "default": "Live"
+        },
+        "animated_bg": {
+            "type": "checkbox",
+            "text": "Use animated background",
+            "description": "Enable platform-colored animated background effect when live",
+            "default": false
+        },
+        "show_icon": {
+            "type": "checkbox",
+            "text": "Show platform icon",
+            "description": "Display the platform icon next to the status text",
+            "default": true
+        },
+        "size": {
+            "label": "Size",
+            "description": "Select the label size",
+            "type": "select",
+            "default": "",
+            "options": {
+                "Default": "",
+                "Large": "large"
+            }
         },
         "alignment": {
             "label": "Alignment",
@@ -111,6 +136,9 @@
                         "show_offline",
                         "offline_text",
                         "live_text",
+                        "animated_bg",
+                        "show_icon",
+                        "size",
                         "alignment"
                     ]
                 },
