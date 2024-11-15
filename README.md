@@ -7,15 +7,20 @@ A Joomla plugin that adds a YOOtheme Pro element to display live streaming statu
 - TikTok
 - YouTube
 - Twitch
+- Facebook Live
+- Instagram Live
+- Kick
 
 ## Features
 
 - Real-time live status detection
-- Platform-specific icons
+- Platform-specific icons and color schemes
 - Customizable live/offline text
 - Text alignment options
 - Optional icon display
 - Hide when offline option
+- Animated background effects
+- Size variations (Default/Large)
 - Caching for performance
 - Error handling and user feedback
 
@@ -32,10 +37,11 @@ A Joomla plugin that adds a YOOtheme Pro element to display live streaming statu
 2. Add new element
 3. Find "Live Status" under Basic Elements
 4. Configure:
-   - Select platform (TikTok/YouTube/Twitch)
+   - Select platform
    - Enter username
    - Customize text and appearance
    - Set visibility options
+   - Choose size and animation preferences
 
 ## Configuration
 
@@ -48,10 +54,21 @@ A Joomla plugin that adds a YOOtheme Pro element to display live streaming statu
 - **Text Alignment**: Left/Center/Right
 - **Hide When Offline**: Toggle visibility when offline
 - **Show Icon**: Toggle platform icon
+- **Size**: Choose label size (Default/Large)
+- **Animated Background**: Toggle animated gradient effect
+- **Platform Colors**: Automatic platform-specific color schemes
 
 ### Plugin Settings
 
 - **Cache Time**: Duration to cache status (5-3600 seconds)
+
+## Visual Features
+
+- Platform-specific color gradients
+- Animated background effects
+- Responsive sizing options
+- Dynamic icon integration
+- UIkit-consistent styling
 
 ## Notes
 
@@ -59,6 +76,7 @@ A Joomla plugin that adds a YOOtheme Pro element to display live streaming statu
 - Cache recommended to prevent rate limiting
 - Some platforms may have delays in status updates
 - Requires active internet connection
+- Animations optimized for performance
 
 ## Support
 
