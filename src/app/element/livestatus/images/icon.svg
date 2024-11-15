@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="30px" height="30px" viewBox="0 0 30 30" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+    <title>Live Status</title>
+    <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
+        <circle fill="#FF3545" cx="15" cy="15" r="15"></circle>
+        <path d="M21,10 L21,20 C21,20.5522847 20.5522847,21 20,21 L10,21 C9.44771525,21 9,20.5522847 9,20 L9,10 C9,9.44771525 9.44771525,9 10,9 L20,9 C20.5522847,9 21,9.44771525 21,10 Z M19,11 L11,11 L11,19 L19,19 L19,11 Z" fill="#FFFFFF" fill-rule="nonzero"></path>
+        <rect fill="#FFFFFF" x="13" y="13" width="4" height="4" rx="1"></rect>
+    </g>
+</svg>

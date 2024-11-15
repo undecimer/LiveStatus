@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<extension type="plugin" group="system" method="upgrade">
+    <name>plg_system_livestatus</name>
+    <author>YOOtheme</author>
+    <creationDate>January 2024</creationDate>
+    <copyright>Copyright (C) 2024 YOOtheme GmbH</copyright>
+    <license>MIT License</license>
+    <authorEmail>info@yootheme.com</authorEmail>
+    <authorUrl>https://yootheme.com</authorUrl>
+    <version>1.0.0</version>
+    <description>PLG_SYSTEM_LIVESTATUS_XML_DESCRIPTION</description>
+
+    <files>
+        <filename plugin="livestatus">livestatus.php</filename>
+        <filename>LICENSE</filename>
+        <filename>README.md</filename>
+        <folder>language</folder>
+        <folder>services</folder>
+        <folder>src</folder>
+    </files>
+
+    <languages folder="language">
+        <language tag="en-GB">en-GB/en-GB.plg_system_livestatus.ini</language>
+        <language tag="en-GB">en-GB/en-GB.plg_system_livestatus.sys.ini</language>
+    </languages>
+
+    <config>
+        <fields name="params">
+            <fieldset name="basic">
+                <field
+                    name="cache_time"
+                    type="number"
+                    default="30"
+                    label="PLG_SYSTEM_LIVESTATUS_CACHE_TIME_LABEL"
+                    description="PLG_SYSTEM_LIVESTATUS_CACHE_TIME_DESC"
+                    min="5"
+                    max="3600"
+                />
+            </fieldset>
+        </fields>
+    </config>
+
+    <scriptfile>script.php</scriptfile>
+    <updateservers>
+        <server type="extension" priority="1" name="Live Status Plugin Updates">https://yootheme.com/api/update/plg_system_livestatus.xml</server>
+    </updateservers>
+</extension>

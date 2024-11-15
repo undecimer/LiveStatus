@@ -1,0 +1,115 @@
+{
+    "@import": "./element.php",
+    "name": "livestatus",
+    "title": "Live Status",
+    "group": "basic",
+    "icon": "${url:images/icon.svg}",
+    "iconSmall": "${url:images/iconSmall.svg}",
+    "element": true,
+    "width": 500,
+    "defaults": {
+        "platform": "tiktok",
+        "username": "",
+        "status_text_live": "Live Now!",
+        "status_text_offline": "Offline",
+        "text_alignment": "left",
+        "hide_when_offline": false,
+        "show_icon": true
+    },
+    "templates": {
+        "render": "./templates/template.php",
+        "content": "./templates/content.php"
+    },
+    "fields": {
+        "platform": {
+            "label": "Platform",
+            "type": "select",
+            "options": {
+                "tiktok": "TikTok",
+                "youtube": "YouTube",
+                "twitch": "Twitch"
+            }
+        },
+        "username": {
+            "label": "Username",
+            "description": "Enter the username without the @ symbol",
+            "type": "text"
+        },
+        "status_text_live": {
+            "label": "Live Status Text",
+            "type": "text",
+            "description": "Text to show when user is live"
+        },
+        "status_text_offline": {
+            "label": "Offline Status Text",
+            "type": "text",
+            "description": "Text to show when user is offline"
+        },
+        "text_alignment": {
+            "label": "Alignment",
+            "type": "select",
+            "default": "left",
+            "options": {
+                "left": "Left",
+                "center": "Center",
+                "right": "Right"
+            }
+        },
+        "hide_when_offline": {
+            "label": "Visibility",
+            "type": "checkbox",
+            "text": "Hide when offline",
+            "description": "If checked, the label will not be displayed when the user is offline"
+        },
+        "show_icon": {
+            "label": "Icon",
+            "type": "checkbox",
+            "text": "Show platform icon",
+            "description": "Show platform icon before the status text"
+        },
+        "position": "${builder.position}",
+        "position_left": "${builder.position_left}",
+        "position_right": "${builder.position_right}",
+        "position_top": "${builder.position_top}",
+        "position_bottom": "${builder.position_bottom}",
+        "position_z_index": "${builder.position_z_index}",
+        "margin": "${builder.margin}",
+        "margin_remove_top": "${builder.margin_remove_top}",
+        "margin_remove_bottom": "${builder.margin_remove_bottom}",
+        "animation": "${builder.animation}",
+        "_parallax_button": "${builder._parallax_button}",
+        "visibility": "${builder.visibility}",
+        "name": "${builder.name}",
+        "status": "${builder.status}",
+        "id": "${builder.id}",
+        "class": "${builder.cls}",
+        "attributes": "${builder.attrs}",
+        "css": {
+            "label": "CSS",
+            "description": "Enter your custom CSS. The following selectors will be prefixed automatically: .el-element",
+            "type": "editor",
+            "editor": "code",
+            "mode": "css",
+            "attrs": {
+                "debounce": 500,
+                "hints": [".el-element"]
+            }
+        }
+    },
+    "fieldset": {
+        "default": {
+            "type": "tabs",
+            "fields": [
+                {
+                    "title": "Content",
+                    "fields": ["platform", "username", "status_text_live", "status_text_offline"]
+                },
+                {
+                    "title": "Settings",
+                    "fields": ["text_alignment", "hide_when_offline", "show_icon"]
+                },
+                "${builder.advanced}"
+            ]
+        }
+    }
+}
