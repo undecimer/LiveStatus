@@ -8,8 +8,8 @@ use Joomla\CMS\Plugin\PluginHelper;
 use Joomla\DI\Container;
 use Joomla\Event\DispatcherInterface;
 
-// Register autoloader for YOOtheme\LiveStatus namespace
-require_once __DIR__ . '/src/Extension/LiveStatus.php';
+// Load bootstrap file for autoloading
+require_once __DIR__ . '/bootstrap.php';
 
 // Invoke the service provider
 $provider = require __DIR__ . '/services/provider.php';

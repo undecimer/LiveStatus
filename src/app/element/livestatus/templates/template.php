@@ -6,78 +6,40 @@ use YOOtheme\LiveStatus\Element\LiveStatus\Platforms\Platform;
 use YOOtheme\LiveStatus\Element\LiveStatus\Platforms\TikTok;
 use YOOtheme\LiveStatus\Element\LiveStatus\Platforms\Twitch;
 use YOOtheme\LiveStatus\Element\LiveStatus\Platforms\YouTube;
+use YOOtheme\LiveStatus\Cache\CacheManager;
+use YOOtheme\LiveStatus\RateLimit\RateLimitManager;
 
 class LiveStatusElement {
-    private static $cache_dir;
-    private static $rate_limit_file;
-    private static $cache_duration = 30; // seconds
-    private static $rate_limit_window = 60; // seconds
-    private static $max_requests = 60; // requests per window
-
-    public static function init() {
-        self::$cache_dir = __DIR__ . '/../cache';
-        self::$rate_limit_file = self::$cache_dir . '/rate_limit.json';
-        
-        if (!file_exists(self::$cache_dir)) {
-            mkdir(self::$cache_dir, 0755, true);
-        }
-    }
-
     public static function getData($platform, $username) {
         try {
-            $cache_file = self::$cache_dir . '/' . md5($platform . '_' . $username) . '.json';
+            $cacheManager = CacheManager::getInstance();
+            $rateLimitManager = RateLimitManager::getInstance();
             
             // Check cache first
-            if (file_exists($cache_file)) {
-                $cache_data = json_decode(file_get_contents($cache_file), true);
-                if (time() - $cache_data['timestamp'] < self::$cache_duration) {
-                    return $cache_data['data'];
-                }
+            $cached_data = $cacheManager->get($platform, $username);
+            if ($cached_data !== false) {
+                return $cached_data;
             }
 
             // Check rate limit
-            if (!self::checkRateLimit()) {
-                return ['error' => 'Rate limit exceeded'];
+            if (!$rateLimitManager->checkLimit($platform)) {
+                $remaining_time = $rateLimitManager->getRemainingRequests($platform);
+                return [
+                    'error' => 'Rate limit exceeded',
+                    'details' => "Please try again later. Remaining requests: {$remaining_time}"
+                ];
             }
 
             // Create platform instance and fetch data
             $data = self::getPlatformInstance($platform, $username)->fetchData();
             
-            // Update cache
-            file_put_contents($cache_file, json_encode([
-                'timestamp' => time(),
-                'data' => $data
-            ]));
+            // Store in cache
+            $cacheManager->store($data, $platform, $username);
 
             return $data;
         } catch (\Exception $e) {
             return ['error' => $e->getMessage()];
         }
-    }
-
-    private static function checkRateLimit() {
-        if (!file_exists(self::$rate_limit_file)) {
-            file_put_contents(self::$rate_limit_file, json_encode(['requests' => [], 'window_start' => time()]));
-            return true;
-        }
-
-        $rate_data = json_decode(file_get_contents(self::$rate_limit_file), true);
-        
-        // Reset if window has passed
-        if (time() - $rate_data['window_start'] >= self::$rate_limit_window) {
-            file_put_contents(self::$rate_limit_file, json_encode(['requests' => [time()], 'window_start' => time()]));
-            return true;
-        }
-
-        // Check if limit exceeded
-        if (count($rate_data['requests']) >= self::$max_requests) {
-            return false;
-        }
-
-        // Add new request
-        $rate_data['requests'][] = time();
-        file_put_contents(self::$rate_limit_file, json_encode($rate_data));
-        return true;
     }
 
     private static function getPlatformInstance(string $platform, string $username): Platform {
@@ -112,7 +74,7 @@ function getPlatformUrl($platform, $username) {
 }
 
 // Initialize the LiveStatusElement class
-LiveStatusElement::init();
+// Removed initialization as it's not needed anymore
 
 // Build element container
 $el = $this->el('div', [

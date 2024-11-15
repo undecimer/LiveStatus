@@ -36,6 +36,42 @@
                     min="5"
                     max="3600"
                 />
+                <field
+                    name="rate_limit_window"
+                    type="number"
+                    default="60"
+                    label="PLG_SYSTEM_LIVESTATUS_RATE_WINDOW_LABEL"
+                    description="PLG_SYSTEM_LIVESTATUS_RATE_WINDOW_DESC"
+                    min="30"
+                    max="3600"
+                />
+                <field
+                    name="rate_limit_tiktok"
+                    type="number"
+                    default="60"
+                    label="PLG_SYSTEM_LIVESTATUS_RATE_TIKTOK_LABEL"
+                    description="PLG_SYSTEM_LIVESTATUS_RATE_TIKTOK_DESC"
+                    min="10"
+                    max="100"
+                />
+                <field
+                    name="rate_limit_youtube"
+                    type="number"
+                    default="60"
+                    label="PLG_SYSTEM_LIVESTATUS_RATE_YOUTUBE_LABEL"
+                    description="PLG_SYSTEM_LIVESTATUS_RATE_YOUTUBE_DESC"
+                    min="10"
+                    max="100"
+                />
+                <field
+                    name="rate_limit_twitch"
+                    type="number"
+                    default="60"
+                    label="PLG_SYSTEM_LIVESTATUS_RATE_TWITCH_LABEL"
+                    description="PLG_SYSTEM_LIVESTATUS_RATE_TWITCH_DESC"
+                    min="10"
+                    max="100"
+                />
             </fieldset>
         </fields>
     </config>
