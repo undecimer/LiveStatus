@@ -112,25 +112,21 @@ if (!function_exists('getPlatformIcon')) {
 $data = $props['platformData'] ?? [];
 $platform = strtolower($props['platform'] ?? 'tiktok');
 $username = $props['username'] ?? '';
+$show_offline = $props['show_offline'] ?? true;
 $animated = $props['animated_bg'] ?? false;
 $show_icon = $props['show_icon'] ?? true;
-
-// Get parent element props
-$element = $props['element'] ?? [];
+$size = $props['size'] ?? '';
 
 // Debug logging
 error_log("LiveStatus item - Full props: " . print_r($props, true));
-error_log("LiveStatus item - Element props: " . print_r($element, true));
+error_log("LiveStatus item - Size value: '{$size}'");
+error_log("LiveStatus item - Show offline: " . ($show_offline ? 'true' : 'false'));
+error_log("LiveStatus item - Is live: " . (($data['live'] ?? false) ? 'true' : 'false'));
 
-// Get size from parent element
-$size = '';
-if (isset($element['size']) && !empty($element['size'])) {
-    $size = $element['size'];
-} elseif (isset($props['size']) && !empty($props['size'])) {
-    $size = $props['size'];
+// Don't render if offline and show_offline is false
+if (!($data['live'] ?? false) && !$show_offline) {
+    return;
 }
-
-error_log("LiveStatus item - Final size value: '{$size}'");
 
 $colors = getPlatformColors($platform);
 $uniqueId = uniqid('livestatus-');
@@ -146,6 +142,7 @@ $el = $this->el('div', [
 ?>
 
 <style>
+/* Base styles */
 .livestatus-<?= $uniqueId ?> {
     display: inline-flex;
     align-items: center;
@@ -158,37 +155,10 @@ $el = $this->el('div', [
     align-items: center;
 }
 
+/* Label content */
 .livestatus-<?= $uniqueId ?> .uk-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
     position: relative;
     overflow: hidden;
-    padding: 5px 10px;
-    border-radius: 3px;
-    font-size: 12px;
-    text-transform: uppercase;
-    transition: all 0.2s ease;
-}
-
-/* Small size */
-.livestatus-<?= $uniqueId ?> .uk-label.uk-label-small {
-    padding: 2px 8px;
-    font-size: 11px;
-}
-.livestatus-<?= $uniqueId ?> .uk-label.uk-label-small .label-content [uk-icon] {
-    width: 14px;
-    height: 14px;
-}
-
-/* Large size */
-.livestatus-<?= $uniqueId ?> .uk-label.uk-label-large {
-    padding: 7px 14px;
-    font-size: 14px;
-}
-.livestatus-<?= $uniqueId ?> .uk-label.uk-label-large .label-content [uk-icon] {
-    width: 18px;
-    height: 18px;
 }
 
 .livestatus-<?= $uniqueId ?> .uk-label .label-content {
@@ -199,14 +169,40 @@ $el = $this->el('div', [
     z-index: 2;
 }
 
-.livestatus-<?= $uniqueId ?> .uk-label .label-content [uk-icon] {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 16px;
-    height: 16px;
+/* Size variants */
+.livestatus-<?= $uniqueId ?> .uk-label.ls-size-small {
+    padding: 0 8px;
+    font-size: 0.75rem;
 }
 
+.livestatus-<?= $uniqueId ?> .uk-label.ls-size-small .label-content [uk-icon] {
+    width: 14px;
+    height: 14px;
+}
+
+.livestatus-<?= $uniqueId ?> .uk-label.ls-size-large {
+    padding: 8px 16px;
+    font-size: 1rem;
+}
+
+.livestatus-<?= $uniqueId ?> .uk-label.ls-size-large .label-content [uk-icon] {
+    width: 20px;
+    height: 20px;
+}
+
+/* Animated background */
+.livestatus-<?= $uniqueId ?> .uk-label.animated-bg .animated-background {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 1;
+    mix-blend-mode: screen;
+    opacity: 1;
+}
+
+/* Platform-specific styles */
 .livestatus-<?= $uniqueId ?> .uk-label.is-live[data-platform="tiktok"] {
     background: #25F4EE;
     color: #000;
@@ -244,17 +240,6 @@ $el = $this->el('div', [
     mix-blend-mode: normal;
 }
 
-.livestatus-<?= $uniqueId ?> .uk-label.is-live.animated-bg .animated-background {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 1;
-    mix-blend-mode: screen;
-    opacity: 1;
-}
-
 .livestatus-<?= $uniqueId ?> .uk-label.has-error {
     background: #f0506e;
     color: #fff;
@@ -264,7 +249,7 @@ $el = $this->el('div', [
 <?= $el($props, $attrs) ?>
     <?php if (!isset($data['error'])) : ?>
         <a href="<?= htmlspecialchars(getPlatformUrl($platform, $username)) ?>" target="_blank" rel="noopener">
-            <span class="uk-label <?= ($data['live'] ?? false) ? 'is-live' : '' ?> <?= ($animated && ($data['live'] ?? false)) ? 'animated-bg' : '' ?> <?= $size ? "uk-label-{$size}" : '' ?>" data-platform="<?= $platform ?>">
+            <span class="uk-label <?= ($data['live'] ?? false) ? 'is-live' : '' ?> <?= ($animated && ($data['live'] ?? false)) ? 'animated-bg' : '' ?> <?= $size ? "ls-size-{$size}" : '' ?>" data-platform="<?= $platform ?>">
                 <?php if ($animated && ($data['live'] ?? false)) : ?>
                     <svg class="animated-background" viewBox="0 0 100 100" preserveAspectRatio="none">
                         <defs>
@@ -300,18 +285,23 @@ $el = $this->el('div', [
                             <animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="6s" repeatCount="indefinite"></animateTransform>
                         </rect>
                     </svg>
-                <?php endif ?>
+                <?php endif; ?>
                 <span class="label-content">
                     <?php if ($show_icon) : ?>
                         <span uk-icon="icon: <?= getPlatformIcon($platform) ?>"></span>
-                    <?php endif ?>
-                    <?= htmlspecialchars(($data['live'] ?? false) ? $props['live_text'] : $props['offline_text']) ?>
+                    <?php endif; ?>
+                    <?= ($data['live'] ?? false) ? ($props['live_text'] ?? 'Live') : ($props['offline_text'] ?? 'Offline') ?>
                 </span>
             </span>
         </a>
     <?php else : ?>
-        <div class="el-livestatus-error">
-            <?= $data['error'] ?>
-        </div>
-    <?php endif ?>
+        <span class="uk-label has-error <?= $size ? "ls-size-{$size}" : '' ?>">
+            <span class="label-content">
+                <?php if ($show_icon) : ?>
+                    <span uk-icon="icon: warning"></span>
+                <?php endif; ?>
+                <?= htmlspecialchars($data['error']) ?>
+            </span>
+        </span>
+    <?php endif; ?>
 <?= $el->end() ?>

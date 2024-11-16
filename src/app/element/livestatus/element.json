@@ -12,8 +12,6 @@
         "layout": "grid",
         "grid_gap": "small",
         "grid_divider": false,
-        "grid_column_gap": "",
-        "grid_row_gap": "",
         "grid_columns": "auto",
         "alignment": "left",
         "size": ""
@@ -62,7 +60,7 @@
             "description": "Set the number of columns for the grid layout. Auto will adjust based on available space.",
             "type": "select",
             "default": "auto",
-            "show": "layout == 'grid'",
+            "enable": "layout == 'grid'",
             "options": {
                 "Auto": "auto",
                 "1 Column": "1",
@@ -75,10 +73,10 @@
         },
         "grid_gap": {
             "label": "Grid Gap",
-            "description": "Set the size of the gap between the grid items.",
+            "description": "Set the size of the gap between grid items.",
             "type": "select",
             "default": "small",
-            "show": "layout == 'grid'",
+            "enable": "layout == 'grid'",
             "options": {
                 "Small": "small",
                 "Medium": "medium",
@@ -89,40 +87,13 @@
         "grid_divider": {
             "type": "checkbox",
             "text": "Show dividers between grid items",
-            "show": "layout == 'grid'"
-        },
-        "grid_column_gap": {
-            "label": "Column Gap",
-            "description": "Set a different column gap size when the default grid gap is not used.",
-            "type": "select",
-            "default": "",
-            "show": "layout == 'grid'",
-            "options": {
-                "Small": "small",
-                "Medium": "medium",
-                "Default": "",
-                "Large": "large",
-                "None": "collapse"
-            }
-        },
-        "grid_row_gap": {
-            "label": "Row Gap",
-            "description": "Set a different row gap size when the default grid gap is not used.",
-            "type": "select",
-            "default": "",
-            "show": "layout == 'grid'",
-            "options": {
-                "Small": "small",
-                "Medium": "medium",
-                "Default": "",
-                "Large": "large",
-                "None": "collapse"
-            }
+            "enable": "layout == 'grid'"
         },
         "alignment": {
             "label": "Alignment",
-            "description": "Align the status items.",
+            "description": "Align the items horizontally.",
             "type": "select",
+            "default": "left",
             "options": {
                 "Left": "left",
                 "Center": "center",
@@ -171,20 +142,20 @@
             "fields": [
                 {
                     "title": "Content",
-                    "fields": [
-                        "content",
-                        "size"
-                    ]
+                    "fields": ["content"]
                 },
                 {
                     "title": "Settings",
                     "fields": [
+                        "size",
                         "layout",
-                        "grid_columns",
-                        "grid_gap",
-                        "grid_divider",
-                        "grid_column_gap",
-                        "grid_row_gap",
+                        {
+                            "description": "Grid Options",
+                            "name": "grid_options",
+                            "type": "group",
+                            "show": "layout == 'grid'",
+                            "fields": ["grid_columns", "grid_gap", "grid_divider"]
+                        },
                         "alignment"
                     ]
                 },
