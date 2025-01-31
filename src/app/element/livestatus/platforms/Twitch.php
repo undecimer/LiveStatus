@@ -21,12 +21,13 @@ class Twitch extends Platform
                 throw new \Exception('Rate limit exceeded for Twitch');
             }
 
-            // Simple headers that work
+            // Enhanced headers to mimic a real browser
             $headers = [
                 'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
                 'Accept-Language' => 'en-US,en;q=0.9',
-                'Accept' => 'text/html',
-                'Accept-Encoding' => 'gzip'
+                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+                'Accept-Encoding' => 'gzip, deflate, br',
+                'Referer' => 'https://www.twitch.tv/'
             ];
 
             $url = "https://www.twitch.tv/{$this->username}";
@@ -34,13 +35,17 @@ class Twitch extends Platform
 
             error_log("Twitch response length for {$this->username}: " . strlen($response));
 
-            // Simple patterns that work reliably
+            // Enhanced patterns for live status detection
             $patterns = [
-                '/isLiveBroadcast":true/',           // Live broadcast indicator
-                '/channelStatus":"live"/',           // Channel status
-                '/channel-status-restriction--live/', // Live restriction class
-                '/"isLive":true/',                   // Basic live status
-                '/\bdata-a-target="live-indicator"\b/' // Live indicator element
+                '/"isLiveBroadcast":true/',                  // JSON data
+                '/"broadcastSettings":{"isLive":true}/',     // Broadcast settings
+                '/"stream":{"type":"live"}/',                // Stream type
+                '/"isLive":true/',                           // Basic live status
+                '/\bdata-a-target="live-indicator"\b/',       // Live indicator element
+                '/\bdata-test-selector="stream-status-live"\b/', // Stream status
+                '/\blive-indicator--live\b/',                // Live indicator class
+                '/\bchannel-status-restriction--live\b/',    // Live restriction class
+                '/\bstream-status--live\b/'                  // Stream status class
             ];
 
             $isLive = false;
@@ -52,31 +57,22 @@ class Twitch extends Platform
                 }
             }
 
-            // Check for profile existence using reliable patterns
-            if (strpos($response, 'Sorry. Unless you\'ve got a time machine') !== false || 
-                strpos($response, '404 Page Not Found') !== false) {
-                error_log("Twitch profile not found for {$this->username}");
-                throw new \Exception("Twitch profile not found");
-            }
-
-            $result = [
-                'live' => $isLive,
-                'username' => $this->username,
-                'platform' => 'twitch'
-            ];
-
-            // Cache the result
+            // Update cache if available
+            $status = ['live' => $isLive, 'timestamp' => time()];
             if ($this->cacheManager) {
-                $cacheDuration = $isLive ? 30 : 120; // 30 seconds if live, 2 minutes if not
-                $this->cacheManager->store($result, 'twitch', $this->username, $cacheDuration);
+                $this->cacheManager->set('twitch', $this->username, $status, $this->cacheTime);
             }
 
-            error_log("Twitch final status for {$this->username}: " . ($isLive ? 'live' : 'not live'));
-            return $result;
+            return $status;
 
         } catch (\Exception $e) {
             error_log("Twitch error for {$this->username}: " . $e->getMessage());
-            throw $e;
+            return ['live' => false, 'error' => $e->getMessage()];
         }
+    }
+
+    protected function getPlatformName(): string
+    {
+        return 'twitch';
     }
 }
