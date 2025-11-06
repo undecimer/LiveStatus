@@ -7,31 +7,19 @@ class Twitch extends Platform
     protected function checkLiveStatus(): array
     {
         try {
-            // Check cache first
-            if ($this->cacheManager) {
-                $cachedStatus = $this->cacheManager->get('twitch', $this->username);
-                if ($cachedStatus !== null) {
-                    error_log("Twitch: Using cached status for {$this->username}: " . ($cachedStatus['live'] ? 'live' : 'not live'));
-                    return $cachedStatus;
-                }
-            }
-
-            // Check rate limiting
-            if ($this->rateLimitManager && !$this->rateLimitManager->checkLimit('twitch')) {
-                throw new \Exception('Rate limit exceeded for Twitch');
-            }
-
-            // Enhanced headers to mimic a real browser
             $headers = [
-                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
                 'Accept-Language' => 'en-US,en;q=0.9',
                 'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-                'Accept-Encoding' => 'gzip, deflate, br',
                 'Referer' => 'https://www.twitch.tv/'
             ];
 
             $url = "https://www.twitch.tv/{$this->username}";
-            $response = $this->httpGet($url, $headers);
+            $response = $this->httpGet($url, $headers, [
+                'timeout' => 20,
+                'throw_on_http_error' => false,
+                'follow_location' => true
+            ]);
 
             error_log("Twitch response length for {$this->username}: " . strlen($response));
 
@@ -57,17 +45,15 @@ class Twitch extends Platform
                 }
             }
 
-            // Update cache if available
-            $status = ['live' => $isLive, 'timestamp' => time()];
-            if ($this->cacheManager) {
-                $this->cacheManager->set('twitch', $this->username, $status, $this->cacheTime);
-            }
-
-            return $status;
+            return [
+                'live' => $isLive,
+                'username' => $this->username,
+                'platform' => 'twitch'
+            ];
 
         } catch (\Exception $e) {
             error_log("Twitch error for {$this->username}: " . $e->getMessage());
-            return ['live' => false, 'error' => $e->getMessage()];
+            throw $e;
         }
     }
 

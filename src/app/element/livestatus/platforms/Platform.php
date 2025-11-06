@@ -3,6 +3,8 @@
 namespace YOOtheme\LiveStatus\Element\LiveStatus\Platforms;
 
 use Joomla\CMS\Factory;
+use Joomla\CMS\Plugin\PluginHelper;
+use Joomla\Registry\Registry;
 use YOOtheme\LiveStatus\Cache\CacheManager;
 use YOOtheme\LiveStatus\RateLimit\RateLimitManager;
 
@@ -11,6 +13,7 @@ abstract class Platform implements PlatformInterface {
     protected static $cacheGroup = 'plg_system_livestatus';
     protected $cacheManager;
     protected $rateLimitManager;
+    protected Registry $pluginParams;
 
     public function __construct(string $username) {
         $this->username = $username;
@@ -20,6 +23,14 @@ abstract class Platform implements PlatformInterface {
         } catch (\Exception $e) {
             error_log("Platform initialization error: " . $e->getMessage());
             // Continue without cache - we'll fetch fresh data each time
+        }
+
+        try {
+            $plugin = PluginHelper::getPlugin('system', 'livestatus');
+            $this->pluginParams = new Registry($plugin->params ?? '');
+        } catch (\Throwable $throwable) {
+            error_log("Failed loading LiveStatus plugin params: " . $throwable->getMessage());
+            $this->pluginParams = new Registry();
         }
     }
 
@@ -118,42 +129,85 @@ abstract class Platform implements PlatformInterface {
     /**
      * Make an HTTP GET request
      */
-    protected function httpGet(string $url): string {
+    protected function getParam(string $name, $default = null)
+    {
+        return $this->pluginParams->get($name, $default);
+    }
+
+    protected function httpGet(string $url, array $headers = [], array $options = []): string
+    {
+        return $this->httpRequest($url, $headers, $options)['body'];
+    }
+
+    protected function httpRequest(string $url, array $headers = [], array $options = []): array
+    {
         $ch = curl_init();
-        
-        // Set modern browser headers
-        curl_setopt_array($ch, [
+
+        $defaultHeaders = [
+            'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+            'Accept-Language' => 'en-US,en;q=0.5',
+            'Connection' => 'keep-alive',
+            'Upgrade-Insecure-Requests' => '1',
+            'Cache-Control' => 'max-age=0',
+            'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36'
+        ];
+
+        $formattedHeaders = [];
+        $mergedHeaders = array_merge($defaultHeaders, $headers);
+        foreach ($mergedHeaders as $key => $value) {
+            if (is_int($key)) {
+                $formattedHeaders[] = $value;
+            } else {
+                $formattedHeaders[] = sprintf('%s: %s', $key, $value);
+            }
+        }
+
+        $timeout = $options['timeout'] ?? 15;
+        $throwOnHttpError = $options['throw_on_http_error'] ?? true;
+
+        $curlOptions = [
             CURLOPT_URL => $url,
             CURLOPT_RETURNTRANSFER => true,
-            CURLOPT_FOLLOWLOCATION => true,
-            CURLOPT_SSL_VERIFYPEER => true,
-            CURLOPT_USERAGENT => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/119.0.0.0 Safari/537.36',
-            CURLOPT_HTTPHEADER => [
-                'Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-                'Accept-Language: en-US,en;q=0.5',
-                'Connection: keep-alive',
-                'Upgrade-Insecure-Requests: 1',
-                'Cache-Control: max-age=0'
-            ],
-            CURLOPT_TIMEOUT => 10
-        ]);
-        
+            CURLOPT_FOLLOWLOCATION => $options['follow_location'] ?? true,
+            CURLOPT_SSL_VERIFYPEER => $options['ssl_verify_peer'] ?? true,
+            CURLOPT_HTTPHEADER => $formattedHeaders,
+            CURLOPT_TIMEOUT => $timeout,
+            CURLOPT_ENCODING => ''
+        ];
+
+        if (!empty($options['user_agent'])) {
+            $curlOptions[CURLOPT_USERAGENT] = $options['user_agent'];
+        }
+
+        if (!empty($options['ip_resolve_v4'])) {
+            $curlOptions[CURLOPT_IPRESOLVE] = CURL_IPRESOLVE_V4;
+        }
+
+        if (!empty($options['http_version'])) {
+            $curlOptions[CURLOPT_HTTP_VERSION] = $options['http_version'];
+        }
+
+        curl_setopt_array($ch, $curlOptions);
+
         $response = curl_exec($ch);
         $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-        
+
         if ($response === false) {
             $error = curl_error($ch);
             curl_close($ch);
             throw new \Exception("HTTP request failed: " . $error);
         }
-        
+
         curl_close($ch);
-        
-        if ($httpCode >= 400) {
+
+        if ($throwOnHttpError && $httpCode >= 400) {
             throw new \Exception("HTTP request failed with status code: " . $httpCode);
         }
-        
-        return $response;
+
+        return [
+            'body' => $response,
+            'status' => $httpCode
+        ];
     }
 
     /**

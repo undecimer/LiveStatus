@@ -2,34 +2,22 @@
 
 namespace YOOtheme\LiveStatus\Element\LiveStatus\Platforms;
 
-use YOOtheme\LiveStatus\Cache\CacheManager;
-use YOOtheme\LiveStatus\RateLimit\RateLimitManager;
-
 class YouTube extends Platform
 {
     protected function checkLiveStatus(): array
     {
         try {
-            // Check cache first
-            if ($this->cacheManager) {
-                $cachedStatus = $this->cacheManager->get('youtube', $this->username);
-                if ($cachedStatus !== null) {
-                    error_log("YouTube: Using cached status for {$this->username}: " . ($cachedStatus ? 'live' : 'not live'));
-                    return [
-                        'live' => $cachedStatus,
-                        'username' => $this->username,
-                        'platform' => 'youtube'
-                    ];
-                }
-            }
-
-            // Check rate limiting
-            if ($this->rateLimitManager && !$this->rateLimitManager->checkLimit('youtube')) {
-                throw new \Exception('Rate limit exceeded for YouTube');
-            }
-
             $url = "https://www.youtube.com/@{$this->username}/live";
-            $response = $this->httpGet($url);
+            $response = $this->httpGet($url, [
+                'User-Agent' => 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36',
+                'Accept-Language' => 'en-US,en;q=0.9',
+                'Accept' => 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+                'Referer' => 'https://www.youtube.com/'
+            ], [
+                'timeout' => 20,
+                'http_version' => defined('CURL_HTTP_VERSION_2_0') ? CURL_HTTP_VERSION_2_0 : null,
+                'throw_on_http_error' => false
+            ]);
             
             error_log("YouTube response length for {$this->username}: " . strlen($response));
             
@@ -80,20 +68,11 @@ class YouTube extends Platform
                 throw new \Exception("YouTube channel not found");
             }
 
-            $result = [
+            return [
                 'live' => $isLive,
                 'username' => $this->username,
                 'platform' => 'youtube'
             ];
-            
-            // Store in cache (shorter time if live)
-            if ($this->cacheManager) {
-                $cacheDuration = $isLive ? 30 : 120; // 30 seconds if live, 2 minutes if not
-                $this->cacheManager->store($result, 'youtube', $this->username, $cacheDuration);
-            }
-            
-            error_log("YouTube final status for {$this->username}: " . ($isLive ? 'true' : 'false'));
-            return $result;
             
         } catch (\Exception $e) {
             error_log("YouTube error for {$this->username}: " . $e->getMessage());
