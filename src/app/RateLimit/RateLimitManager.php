@@ -30,7 +30,7 @@ class RateLimitManager
         ];
 
         // Initialize cache
-        $this->cache = Factory::getCache($this->group, 'output');
+        $this->cache = Factory::getCache($this->group, '', 'file');
         $this->cache->setCaching(true);
         $this->cache->setLifeTime($this->window);
     }

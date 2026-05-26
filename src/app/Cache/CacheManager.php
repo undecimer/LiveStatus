@@ -28,7 +28,7 @@ class CacheManager
                 'lifetime' => $this->cacheTime * 60 // Convert to minutes
             );
 
-            $this->cache = Factory::getCache($this->group, 'file');
+            $this->cache = Factory::getCache($this->group, '', 'file');
             $this->cache->setCaching(true);
             $this->cache->setLifeTime($this->cacheTime * 60);
 
@@ -88,7 +88,7 @@ class CacheManager
             }
             
             // Store data
-            $result = $this->cache->store($key, $cacheData);
+            $result = $this->cache->store($cacheData, $key);
             
             error_log("Cache store for {$platform}_{$username}: " . ($cacheData['live'] ? 'live' : 'not live'));
             
