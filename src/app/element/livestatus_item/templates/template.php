@@ -87,6 +87,48 @@ if (!function_exists('getPlatformColors')) {
     }
 }
 
+if (!function_exists('getPlatformGradient')) {
+    function getPlatformGradient($platform) {
+        switch (strtolower($platform)) {
+            case 'tiktok':
+                return 'linear-gradient(-45deg, #00f2fe, #fe2c55, #25f4ee, #fe2c55, #00f2fe)';
+            case 'youtube':
+                return 'linear-gradient(-45deg, #ff0000, #ff5757, #cc0000, #ff5757, #ff0000)';
+            case 'twitch':
+                return 'linear-gradient(-45deg, #9147ff, #df80ff, #772ce8, #df80ff, #9147ff)';
+            case 'facebook':
+                return 'linear-gradient(-45deg, #1877f2, #00c6ff, #4267b2, #00c6ff, #1877f2)';
+            case 'instagram':
+                return 'linear-gradient(-45deg, #405de6, #c13584, #fd1d1d, #fcaf45, #fd1d1d, #c13584, #405de6)';
+            case 'kick':
+                return 'linear-gradient(-45deg, #53fc18, #00ff87, #24bd04, #00ff87, #53fc18)';
+            default:
+                return 'linear-gradient(-45deg, #e5e5e5, #ffffff, #888888, #ffffff, #e5e5e5)';
+        }
+    }
+}
+
+if (!function_exists('getPlatformShadowColor')) {
+    function getPlatformShadowColor($platform) {
+        switch (strtolower($platform)) {
+            case 'tiktok':
+                return 'rgba(37, 244, 238, 0.65)';
+            case 'youtube':
+                return 'rgba(255, 0, 0, 0.65)';
+            case 'twitch':
+                return 'rgba(145, 71, 255, 0.65)';
+            case 'facebook':
+                return 'rgba(24, 119, 242, 0.65)';
+            case 'instagram':
+                return 'rgba(225, 48, 108, 0.65)';
+            case 'kick':
+                return 'rgba(83, 252, 24, 0.65)';
+            default:
+                return 'rgba(255, 255, 255, 0.3)';
+        }
+    }
+}
+
 if (!function_exists('getPlatformIcon')) {
     function getPlatformIcon($platform) {
         switch (strtolower($platform)) {
@@ -130,6 +172,13 @@ if (!($data['live'] ?? false) && !$show_offline) {
 
 $colors = getPlatformColors($platform);
 $uniqueId = uniqid('livestatus-');
+
+// Compute deterministic unique speeds and offsets for the animations based on the username & platform
+$hashVal = crc32($username . $platform);
+$flowSpeed = 8 + abs($hashVal % 8);            // 8s to 16s
+$flowDelay = -1 * abs(($hashVal >> 4) % 20);   // -0s to -20s
+$pulseSpeed = 3 + abs(($hashVal >> 8) % 3);    // 3s to 5s
+$pulseDelay = -1 * abs(($hashVal >> 12) % 6);  // -0s to -6s
 
 // Build element container
 $el = $this->el('div', [
@@ -190,7 +239,7 @@ $el = $this->el('div', [
     height: 20px;
 }
 
-/* Animated background */
+/* Animated background - colorful moving layer */
 .livestatus-<?= $uniqueId ?> .uk-label.animated-bg .animated-background {
     position: absolute;
     top: 0;
@@ -198,8 +247,19 @@ $el = $this->el('div', [
     width: 100%;
     height: 100%;
     z-index: 1;
-    mix-blend-mode: screen;
+    background: <?= getPlatformGradient($platform) ?>;
+    background-size: 300% 300%;
     opacity: 1;
+    mix-blend-mode: normal;
+    animation: flow-<?= $uniqueId ?> <?= $flowSpeed ?>s ease-in-out infinite;
+    animation-delay: <?= $flowDelay ?>s;
+}
+
+/* Gradient flow keyframes */
+@keyframes flow-<?= $uniqueId ?> {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 /* Platform-specific styles */
@@ -229,15 +289,62 @@ $el = $this->el('div', [
     color: #000;
 }
 
+/* High-end glassmorphism overlay for animated background items */
 .livestatus-<?= $uniqueId ?> .uk-label.is-live.animated-bg {
     z-index: 1;
+    background: transparent !important;
+    color: #ffffff !important;
+    border: 1px solid rgba(255, 255, 255, 0.35) !important;
+    backdrop-filter: blur(4px);
+    -webkit-backdrop-filter: blur(4px);
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: pulse-<?= $uniqueId ?> <?= $pulseSpeed ?>s ease-in-out infinite !important;
+    animation-delay: <?= $pulseDelay ?>s !important;
+}
+
+/* Pulsing outer shadow keyframes with slight scale shift for high-end feel */
+@keyframes pulse-<?= $uniqueId ?> {
+    0% {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), 0 0 12px <?= getPlatformShadowColor($platform) ?>, inset 0 1px 2px rgba(255, 255, 255, 0.35) !important;
+        transform: scale(1);
+    }
+    50% {
+        box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35), 0 0 24px <?= getPlatformShadowColor($platform) ?>, inset 0 1px 3px rgba(255, 255, 255, 0.5) !important;
+        transform: scale(1.02);
+    }
+    100% {
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25), 0 0 12px <?= getPlatformShadowColor($platform) ?>, inset 0 1px 2px rgba(255, 255, 255, 0.35) !important;
+        transform: scale(1);
+    }
+}
+
+.livestatus-<?= $uniqueId ?> .uk-label.is-live.animated-bg[data-platform="tiktok"] {
+    border-color: rgba(37, 244, 238, 0.6) !important;
+}
+.livestatus-<?= $uniqueId ?> .uk-label.is-live.animated-bg[data-platform="youtube"] {
+    border-color: rgba(255, 0, 0, 0.6) !important;
+}
+.livestatus-<?= $uniqueId ?> .uk-label.is-live.animated-bg[data-platform="twitch"] {
+    border-color: rgba(145, 71, 255, 0.6) !important;
+}
+.livestatus-<?= $uniqueId ?> .uk-label.is-live.animated-bg[data-platform="facebook"] {
+    border-color: rgba(24, 119, 242, 0.6) !important;
+}
+.livestatus-<?= $uniqueId ?> .uk-label.is-live.animated-bg[data-platform="instagram"] {
+    border-color: rgba(225, 48, 108, 0.6) !important;
+}
+.livestatus-<?= $uniqueId ?> .uk-label.is-live.animated-bg[data-platform="kick"] {
+    border-color: rgba(83, 252, 24, 0.6) !important;
 }
 
 .livestatus-<?= $uniqueId ?> .uk-label.is-live.animated-bg .label-content {
     position: relative;
-    z-index: 3;
-    text-shadow: 0 0 1px rgba(0,0,0,0.3);
-    mix-blend-mode: normal;
+    z-index: 2;
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.8), 0 0 2px rgba(0, 0, 0, 0.9) !important;
 }
 
 .livestatus-<?= $uniqueId ?> .uk-label.has-error {
@@ -251,40 +358,7 @@ $el = $this->el('div', [
         <a href="<?= htmlspecialchars(getPlatformUrl($platform, $username)) ?>" target="_blank" rel="noopener">
             <span class="uk-label <?= ($data['live'] ?? false) ? 'is-live' : '' ?> <?= ($animated && ($data['live'] ?? false)) ? 'animated-bg' : '' ?> <?= $size ? "ls-size-{$size}" : '' ?>" data-platform="<?= $platform ?>">
                 <?php if ($animated && ($data['live'] ?? false)) : ?>
-                    <svg class="animated-background" viewBox="0 0 100 100" preserveAspectRatio="none">
-                        <defs>
-                            <radialGradient id="Gradient1-<?= $uniqueId ?>" cx="50%" cy="50%" fx="0.441602%" fy="50%" r=".7">
-                                <animate attributeName="fx" dur="12s" values="0%;5%;0%" repeatCount="indefinite"></animate>
-                                <stop offset="0%" stop-color="<?= $colors[0] ?>"></stop>
-                                <stop offset="100%" stop-color="<?= $colors[0] ?>" stop-opacity="0"></stop>
-                            </radialGradient>
-                            <radialGradient id="Gradient2-<?= $uniqueId ?>" cx="50%" cy="50%" fx="2.68147%" fy="50%" r=".7">
-                                <animate attributeName="fx" dur="8s" values="0%;5%;0%" repeatCount="indefinite"></animate>
-                                <stop offset="0%" stop-color="<?= $colors[1] ?>"></stop>
-                                <stop offset="100%" stop-color="<?= $colors[1] ?>" stop-opacity="0"></stop>
-                            </radialGradient>
-                            <radialGradient id="Gradient3-<?= $uniqueId ?>" cx="50%" cy="50%" fx="0.836536%" fy="50%" r=".7">
-                                <animate attributeName="fx" dur="10s" values="0%;5%;0%" repeatCount="indefinite"></animate>
-                                <stop offset="0%" stop-color="<?= $colors[2] ?>"></stop>
-                                <stop offset="100%" stop-color="<?= $colors[2] ?>" stop-opacity="0"></stop>
-                            </radialGradient>
-                        </defs>
-                        <rect x="13.744%" y="1.18473%" width="100%" height="100%" fill="url(#Gradient1-<?= $uniqueId ?>)" transform="rotate(334.41 50 50)">
-                            <animate attributeName="x" dur="10s" values="25%;0%;25%" repeatCount="indefinite"></animate>
-                            <animate attributeName="y" dur="11s" values="0%;25%;0%" repeatCount="indefinite"></animate>
-                            <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="5s" repeatCount="indefinite"></animateTransform>
-                        </rect>
-                        <rect x="-2.17916%" y="35.4267%" width="100%" height="100%" fill="url(#Gradient2-<?= $uniqueId ?>)" transform="rotate(255.072 50 50)">
-                            <animate attributeName="x" dur="13s" values="-25%;0%;-25%" repeatCount="indefinite"></animate>
-                            <animate attributeName="y" dur="14s" values="0%;50%;0%" repeatCount="indefinite"></animate>
-                            <animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="7s" repeatCount="indefinite"></animateTransform>
-                        </rect>
-                        <rect x="9.00483%" y="14.5733%" width="100%" height="100%" fill="url(#Gradient3-<?= $uniqueId ?>)" transform="rotate(139.903 50 50)">
-                            <animate attributeName="x" dur="15s" values="0%;25%;0%" repeatCount="indefinite"></animate>
-                            <animate attributeName="y" dur="8s" values="0%;25%;0%" repeatCount="indefinite"></animate>
-                            <animateTransform attributeName="transform" type="rotate" from="360 50 50" to="0 50 50" dur="6s" repeatCount="indefinite"></animateTransform>
-                        </rect>
-                    </svg>
+                    <span class="animated-background"></span>
                 <?php endif; ?>
                 <span class="label-content">
                     <?php if ($show_icon) : ?>
