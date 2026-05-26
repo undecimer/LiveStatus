@@ -6,6 +6,27 @@ $isGrid = $props['layout'] === 'grid';
 $alignment = $props['alignment'] ?? 'left';
 $size = $props['size'] ?? '';
 
+// Pre-render children to check if we have any output to display.
+// If all accounts are offline and "show_offline" is disabled, they will render nothing.
+$renderedChildren = [];
+foreach ($children as $child) {
+    // Pass parent element properties directly to child props
+    $child->props['size'] = $size;
+    $child->props['element']['layout'] = $props['layout'];
+    $child->props['element']['alignment'] = $alignment;
+    
+    // Render the child and trim the whitespace
+    $renderedChild = trim($builder->render($child));
+    if (!empty($renderedChild)) {
+        $renderedChildren[] = $renderedChild;
+    }
+}
+
+// If no children produced any output, collapse and hide this element entirely.
+if (empty($renderedChildren)) {
+    return;
+}
+
 // Build element container
 $el = $this->el('div', [
     'class' => [
@@ -100,13 +121,7 @@ error_log("LiveStatus parent - Alignment: '{$alignment}'");
 </style>
 
 <?= $el($props, $attrs) ?>
-    <?php foreach ($children as $child) : ?>
-        <?php 
-        // Pass properties directly to child props
-        $child->props['size'] = $size;
-        $child->props['element']['layout'] = $props['layout'];
-        $child->props['element']['alignment'] = $alignment;
-        ?>
-        <?= $builder->render($child) ?>
+    <?php foreach ($renderedChildren as $renderedChild) : ?>
+        <?= $renderedChild ?>
     <?php endforeach ?>
 <?= $el->end() ?>
