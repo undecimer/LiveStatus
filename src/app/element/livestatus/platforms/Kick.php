@@ -21,21 +21,25 @@ class Kick extends Platform
 
             error_log("Kick response length for {$this->username}: " . strlen($response));
 
-            // Simple patterns that work reliably
-            $patterns = [
-                '/livestream-offline-container hidden/',  // Hidden offline container means live
-                '/"is_live":true/',                      // JSON live status
-                '/livestream-buttons-container/',         // Live buttons container
-                '/playback-overlay-container/',           // Playback overlay indicates live
-                '/data-channel-is-live="true"/'          // Live channel attribute
-            ];
+            $parsedStatus = $this->extractLiveStatusFromNextData($response);
+            $isLive = $parsedStatus ?? false;
 
-            $isLive = false;
-            foreach ($patterns as $pattern) {
-                if (preg_match($pattern, $response)) {
-                    error_log("Kick live pattern match for {$this->username}: $pattern");
-                    $isLive = true;
-                    break;
+            if ($isLive === false) {
+                // Simple patterns that work reliably as fallback
+                $patterns = [
+                    '/livestream-offline-container hidden/',  // Hidden offline container means live
+                    '/"is_live":true/',                      // JSON live status
+                    '/livestream-buttons-container/',         // Live buttons container
+                    '/playback-overlay-container/',           // Playback overlay indicates live
+                    '/data-channel-is-live="true"/'          // Live channel attribute
+                ];
+
+                foreach ($patterns as $pattern) {
+                    if (preg_match($pattern, $response)) {
+                        error_log("Kick live pattern match for {$this->username}: $pattern");
+                        $isLive = true;
+                        break;
+                    }
                 }
             }
 
@@ -57,5 +61,34 @@ class Kick extends Platform
             error_log("Kick error for {$this->username}: " . $e->getMessage());
             throw $e;
         }
+    }
+
+    private function extractLiveStatusFromNextData(string $html): ?bool
+    {
+        if (!preg_match('/<script[^>]+?id="__NEXT_DATA__"[^>]*>(.+?)<\/script>/is', $html, $matches)) {
+            return null;
+        }
+
+        $json = html_entity_decode($matches[1], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $data = json_decode($json, true);
+
+        if (!is_array($data)) {
+            return null;
+        }
+
+        // Inside __NEXT_DATA__, pageProps -> channel -> livestream
+        $channel = $data['props']['pageProps']['channel'] ?? null;
+        if (!is_array($channel)) {
+            return null;
+        }
+
+        $livestream = $channel['livestream'] ?? null;
+        if (is_array($livestream)) {
+            $isLive = $livestream['is_live'] ?? false;
+            error_log("Kick: Live status resolved via __NEXT_DATA__ for user {$this->username}: " . ($isLive ? 'live' : 'not live'));
+            return (bool)$isLive;
+        }
+
+        return false;
     }
 }
