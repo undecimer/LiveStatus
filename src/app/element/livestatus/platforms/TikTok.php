@@ -27,12 +27,16 @@ class TikTok extends Platform
             }
 
             $parsedStatus = $this->extractLiveStatusFromSigState($response);
+            if ($parsedStatus === null) {
+                $parsedStatus = $this->extractLiveStatusFromUniversalData($response);
+            }
 
             // Check if profile exists
             if (strpos($response, 'userInfo') === false &&
                 strpos($response, 'profile') === false &&
                 strpos($response, 'tiktok-avatar') === false &&
-                strpos($response, 'SIGI_STATE') === false) {
+                strpos($response, 'SIGI_STATE') === false &&
+                strpos($response, '__UNIVERSAL_DATA_FOR_REHYDRATION__') === false) {
                 error_log("TikTok profile not found for {$this->username}");
                 throw new \Exception("TikTok profile not found");
             }
@@ -40,9 +44,9 @@ class TikTok extends Platform
             // Enhanced live detection using multiple reliable methods
             $isLive = $parsedStatus ?? false;
 
-            // Method 1: Check for live room metadata
-            if ($isLive === false && preg_match('/"roomId":"[0-9]+"/i', $response)) {
-                error_log("TikTok: Live detected via roomId for user {$this->username}");
+            // Method 1: Check for live room metadata (only matching non-zero IDs)
+            if ($isLive === false && preg_match('/"roomId":"[1-9][0-9]*"/i', $response)) {
+                error_log("TikTok: Live detected via non-zero roomId for user {$this->username}");
                 $isLive = true;
             }
 
@@ -102,5 +106,33 @@ class TikTok extends Platform
         }
 
         return null;
+    }
+
+    private function extractLiveStatusFromUniversalData(string $html): ?bool
+    {
+        if (!preg_match('/<script[^>]+?id="__UNIVERSAL_DATA_FOR_REHYDRATION__"[^>]*>(.+?)<\/script>/is', $html, $matches)) {
+            return null;
+        }
+
+        $json = html_entity_decode($matches[1], ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $data = json_decode($json, true);
+
+        if (!is_array($data)) {
+            return null;
+        }
+
+        // Access __DEFAULT_SCOPE__ -> webapp.user-detail -> userInfo -> user -> roomId
+        $userScope = $data['__DEFAULT_SCOPE__']['webapp.user-detail']['userInfo']['user'] ?? null;
+        if (!is_array($userScope)) {
+            return null;
+        }
+
+        $roomId = $userScope['roomId'] ?? null;
+        if ($roomId !== null && $roomId !== '0' && $roomId !== '') {
+            error_log("TikTok: Live detected via universal data roomId: {$roomId} for user {$this->username}");
+            return true;
+        }
+
+        return false;
     }
 }
