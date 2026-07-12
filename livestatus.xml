@@ -12,6 +12,7 @@
 
     <files>
         <filename plugin="livestatus">livestatus.php</filename>
+        <filename>bootstrap.php</filename>
         <filename>LICENSE</filename>
         <filename>README.md</filename>
         <folder>language</folder>

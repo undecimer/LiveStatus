@@ -1,0 +1,6 @@
+# Packaged Joomla Extension
+install.zip
+
+# OS Files
+.DS_Store
+Thumbs.db
